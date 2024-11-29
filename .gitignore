@@ -7,10 +7,12 @@ Ableton Project Info/
 AbletonTmp-0000
 .stversions/
 .stignore
+.venv/
 
 # Files to Ignore
 Icon
 .DS_Store
+*.pyc
 *.textClipping
 *.cfg
 *.webloc

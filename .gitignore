@@ -12,6 +12,7 @@ AbletonTmp-0000
 # Files to Ignore
 Icon
 .DS_Store
+Icon*
 *.pyc
 *.textClipping
 *.cfg

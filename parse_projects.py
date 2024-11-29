@@ -15,7 +15,6 @@ PROJECT_DIR = './'
 CACHE_DIR = 'logs/'
 CACHE_INFO_FILE = 'project_info'
 CACHE_ERROR_FILE = 'project_errors'
-HEX_CHARS = frozenset('0123456789abcdef')
 SKIP_FOLDERS = [
     'Backup',
     'old',
@@ -26,12 +25,14 @@ SKIP_FOLDERS = [
     '.ipynb_checkpoints',
     '.git',
 ]
+PYTHON_VERSION = sys.version
 
+ProjectMap = Dict[str, Any]
 
 class ALSNode:
   """Base class for parsing nodes in Ableton Live project files."""
 
-  value_fields: Dict[str, Any] = {}
+  value_fields = {}
 
   def __init__(self, elem: ET.Element):
     self.elem = elem
@@ -71,10 +72,6 @@ class ALSNode:
     """Extract a boolean value from a sub-element."""
     return self._value_for_subtag(selector) == 'true'
 
-  def _decode_hex_string(self, string: str) -> str:
-    """Decode a hex string, ignoring non-hex characters."""
-    hex_chars = ''.join(c for c in string.lower() if c in HEX_CHARS)
-    return bytes.fromhex(hex_chars).decode('utf-8')
 
   def _guess_type_for_value(self, v: str) -> Callable[[str], Any] | None:
     """Infer the data type of a string value."""
@@ -90,7 +87,7 @@ class ALSNode:
 
 
 class ALSTrackMixerParam(ALSNode):
-  """Represents parameters of an Ableton Live track mixer."""
+  """Parameters of an Ableton Live track mixer."""
 
   def __init__(self, elem: ET.Element):
     super().__init__(elem)
@@ -105,7 +102,7 @@ class ALSTrackMixerParam(ALSNode):
 
 
 class ALSTrackMixer(ALSNode):
-  """Represents a mixer for an Ableton Live track."""
+  """Mixer for an Ableton Live track."""
 
   def __init__(self, elem: ET.Element):
     super().__init__(elem)
@@ -116,7 +113,7 @@ class ALSTrackMixer(ALSNode):
 
 
 class ALSWarpMarker:
-  """Represents a warp marker in an Ableton Live clip."""
+  """Warp marker in an Ableton Live clip."""
 
   def __init__(self, elem: ET.Element):
     self.sec_time = float(elem.get('SecTime'))
@@ -124,7 +121,7 @@ class ALSWarpMarker:
 
 
 class ALSMidiNote:
-  """Represents a MIDI note in an Ableton Live clip."""
+  """MIDI note in an Ableton Live clip."""
 
   def __init__(self, key: int | None, elem: ET.Element):
     self.time = float(elem.get('Time'))
@@ -136,7 +133,7 @@ class ALSMidiNote:
 
 
 class LiveSetMidiClipData(ALSNode):
-  """Represents data for a MIDI clip in an Ableton Live set."""
+  """Data for a MIDI clip in an Ableton Live set."""
 
   def __init__(self, elem: ET.Element):
     super().__init__(elem)
@@ -181,21 +178,20 @@ class LiveSetMidiClipData(ALSNode):
 
 
 class LiveSetAuPluginPresetData:
-  """Represents preset data for an AU plugin in Ableton Live."""
+  """Preset data for an AU plugin in Ableton Live."""
 
   def __init__(self, text: str):
     self.text = self._decode_hex_string(text)
     self.plist = plistlib.loads(bytes(self.text, 'utf-8'))
     self.name = self.plist.get('name')
-
+    
   def _decode_hex_string(self, string: str) -> str:
     """Decode a hex string, ignoring non-hex characters."""
-    hex_chars = ''.join(c for c in string.lower() if c in HEX_CHARS)
+    hex_chars = ''.join(c for c in string.lower() if c in '0123456789abcdef')
     return bytes.fromhex(hex_chars).decode('utf-8')
 
-
 class LiveSetDeviceData(ALSNode):
-  """Represents data for a device in an Ableton Live set."""
+  """Data for a device in an Ableton Live set."""
 
   def __init__(self, elem: ET.Element):
     super().__init__(elem)
@@ -221,10 +217,9 @@ class LiveSetDeviceData(ALSNode):
 
 
 class LiveSetTrackData(ALSNode):
-  """Represents data for a track in an Ableton Live set."""
+  """Data for a track in an Ableton Live set."""
 
   value_fields = {'Name': None}
-
   def __init__(self, elem: ET.Element):
     super().__init__(elem)
     self.track_type = elem.tag
@@ -247,7 +242,7 @@ class LiveSetTrackData(ALSNode):
 
 
 class LiveSetData:
-  """Represents data extracted from an Ableton Live project file (.als)."""
+  """Data extracted from an Ableton Live project file (.als)."""
 
   def __init__(self, path: str):
     self.etree = ET.parse(gzip.GzipFile(path))
@@ -277,7 +272,7 @@ def parse_als_info(path: str) -> Dict[str, Any]:
   lsd = LiveSetData(path)
   name, ext = os.path.splitext(path)
   assert ext == '.als', f'Expected .als file, got {ext}'
-  info: Dict[str, Any] = {
+  info = {
       'path': path,
       'name': os.path.basename(name),
       'project': os.path.dirname(name).split('/')[-1].replace(' Project', ''),
@@ -289,7 +284,7 @@ def parse_als_info(path: str) -> Dict[str, Any]:
     if not track_data:
       print(f'  SKIPPING {track_data} track {i}')
       continue
-    track_info: Dict[str, Any] = {
+    track_info = {
         'index': i,
         'type': track_data.track_type,
         'devices': [],
@@ -299,14 +294,11 @@ def parse_als_info(path: str) -> Dict[str, Any]:
       track_info['devices'].append(
           {'type': dev.device_type, 'preset': dev.preset_name}
       )
-
     for clip in track_data.midi_clips:
       track_info['clips'].append(
           {'name': clip.name, 'length': clip.length, 'is_loop': clip.loop_on}
       )
-
     info['tracks'].append(track_info)
-
     if track_data.mixer.params:
       print(' DEBUG: track has mixer params (likely older project)')
     if track_data.name:
@@ -315,7 +307,7 @@ def parse_als_info(path: str) -> Dict[str, Any]:
   return info
 
 
-def save_info(cache_dir: str, info_dict: Dict[str, Any], prefix: str) -> str:
+def save_info(cache_dir: str, info_dict: ProjectMap, prefix: str) -> str:
   """Save project information to a cache file."""
   timestamp = int(time.time())
   save_date = datetime.datetime.fromtimestamp(timestamp)
@@ -332,7 +324,7 @@ def load_info(
     prefix: str = CACHE_INFO_FILE,
     cache_file: str = '',
     load_most_recent: bool = True,
-) -> Dict[str, Any]:
+) -> ProjectMap:
   """Load project information from a cache file."""
   cache = sorted([f for f in os.listdir(cache_dir) if prefix in f])
   cache_file = (
@@ -351,7 +343,7 @@ def load_info(
 
 def load_projects_in_dir(
     project_dir: str, skip_folders: List[str] = tuple(SKIP_FOLDERS)
-) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+) -> Tuple[ProjectMap, ProjectMap]:
   """Load information for all .als projects in a directory."""
   project_info = {}
   project_errors = {}
@@ -386,7 +378,7 @@ def run_parser(
     cache_dir: str = CACHE_DIR,
     cache_info_file: str = CACHE_INFO_FILE,
     cache_error_file: str = CACHE_ERROR_FILE,
-) -> None:
+) -> Tuple[ProjectMap, ProjectMap]:
   """Main entry point for parsing Ableton Live projects."""
   print(
       f'Project path: {project_dir}\n'
@@ -400,7 +392,8 @@ def run_parser(
     save_info(cache_dir, project_info, prefix=cache_info_file)
   if project_errors:
     save_info(cache_dir, project_errors, prefix=cache_error_file)
-
+  
+  return project_info, project_errors
 
 if __name__ == '__main__':
-  run_parser(project_dir=os.getcwd())
+  info, errors = run_parser(project_dir=os.getcwd())

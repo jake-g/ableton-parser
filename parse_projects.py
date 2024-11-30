@@ -1,12 +1,12 @@
 """Library for Parsing Ableton Live projects."""
 
-import collections
+from collections import defaultdict, Counter
 import datetime
 import gzip
+import json
 import os
 import pickle
 import plistlib
-import pprint
 import sys
 import time
 from typing import Any, Callable, Dict, List, Tuple
@@ -28,9 +28,8 @@ SKIP_FOLDERS = [
     '.ipynb_checkpoints',
     '.git',
 ]
+COUNTER_JSON = os.path.join(CACHE_DIR, 'counters.json')
 PYTHON_VERSION = sys.version
-
-ProjectMap = Dict[str, Any]
 
 
 class ALSNode:
@@ -273,13 +272,10 @@ class LiveSetData:
           else None
       )
 
-    self.file_size = os.path.getsize(path) / (1024 * 1024)  # Convert to MB
-    self.creation_time = self._timestamp_to_string(os.path.getctime(path))
-    self.modified_time = self._timestamp_to_string(os.path.getmtime(path))
+    self.file_size_mb = os.path.getsize(path) / (1024 * 1024)  # Convert to MB
+    self.creation_time = datetime.datetime.fromtimestamp(os.path.getctime(path))
+    self.modified_time = datetime.datetime.fromtimestamp(os.path.getmtime(path))
     self.num_tracks = len(self.tracks) + (1 if self.master_track else 0)
-    self.track_type_counts = collections.Counter(
-        track.track_type for track in self.tracks + [self.master_track] if track
-    )
 
   def time_signatures(self) -> List[Tuple[int, Tuple[int, int]]]:
     """Extract the time signatures defined in the project."""
@@ -295,69 +291,126 @@ class LiveSetData:
     """Decode an Ableton-encoded time signature to (numerator, denominator)."""
     return (encoded % 99 + 1, 1 << (encoded // 99))
 
-  def _timestamp_to_string(
-      self, timestamp: float, format: str = '%Y-%m-%d %H:%M:%S'
-  ) -> str:
-    """Converts a Unix timestamp to a formatted string."""
-    return datetime.datetime.fromtimestamp(timestamp).strftime(format)
 
+def parse_als_info(
+    path: str, include_midi_clips: bool = False
+) -> Dict[str, Any]:
+  """Extracts project information from an Ableton Live file (.als)."""
 
-def parse_als_info(path: str, verbose: bool = False) -> Dict[str, Any]:
-  """Extract project information from an Ableton Live file (.als)."""
   lsd = LiveSetData(path)
   name, ext = os.path.splitext(path)
   assert ext == '.als', f'Expected .als file, got {ext}'
+
   project = {
       'path': path,
       'name': os.path.basename(name),
-      'project': os.path.dirname(name).split('/')[-1].replace(' Project', ''),
-      'ableton_version': lsd.ableton_version,
-      'file_size_mb': round(lsd.file_size, 2),
-      'created': lsd.creation_time,
-      'modified': lsd.modified_time,
-      'num_tracks': lsd.num_tracks,
-      'track_type_counts': lsd.track_type_counts,
+      'ableton_version_full': lsd.ableton_version,
+      'ableton_version': lsd.ableton_version.split('_')[0],
       'tracks': [],
+      'file_size_mb': round(lsd.file_size_mb, 2),
+      'created': lsd.creation_time.strftime('%Y-%m-%d %H:%M:%S'),
+      'modified': lsd.modified_time.strftime('%Y-%m-%d %H:%M:%S'),
+      'num_tracks': lsd.num_tracks,
   }
-  # Debugging show full xml for project
-  if verbose:
-    pprint.pprint(project)
-    # ET.dump(lsd.etree)
 
   all_tracks = lsd.tracks
   if lsd.master_track and lsd.master_track.track_type == 'MasterTrack':
     all_tracks.append(lsd.master_track)
 
+  counters = defaultdict(Counter)
+  # Counters with one entry for project, used when merging all counters
+  counters['ableton_versions'][project['ableton_version']] += 1
+  counters['creation_years'][lsd.creation_time.year] += 1
+  counters['last_modified_years'][lsd.modified_time.year] += 1
+  counters['track_counts'][project['num_tracks']] += 1
+
   for i, track_data in enumerate(all_tracks):
     i += 1
     if not track_data:
       print(f'  SKIPPING {track_data} track {i}')
+      counters['warning_skipped_track'] += 1
       continue
+
     track_info = {
         'index': i,
         'type': track_data.track_type,
-        'devices': [],
-        'clips': [],
     }
-
+    counters['track_types'][track_data.track_type] += 1
+    track_info['devices'] = []
     for dev in track_data.devices:
       track_info['devices'].append(
           {'type': dev.device_type, 'preset': dev.preset_name}
       )
-    for clip in track_data.midi_clips:
-      track_info['clips'].append(
-          {'name': clip.name, 'length': clip.length, 'is_loop': clip.loop_on}
-      )
+      counters['device_types'][dev.device_type] += 1
+      if dev.device_type == 'PluginDevice':
+        counters['plugins_vst'][dev.preset_name] += 1
+      elif dev.device_type == 'AuPluginDevice':
+        counters['plugins_au'][dev.preset_name] += 1
+
+    # TODO parse AudioClips Groups need to add LiveSetMidiClipData
+    # Currently midi clips not used for anything so not included by default
+    if include_midi_clips:
+      track_info['midi_clips'] = []
+      for clip in track_data.midi_clips:
+        track_info['midi_clips'].append({
+            'name': clip.name,
+            'length': clip.length,
+            'is_loop': clip.loop_on,
+        })
+        counters['midi_clip_is_loop'][clip.loop_on] += 1
+
     project['tracks'].append(track_info)
-    if track_data.mixer and track_data.mixer.params:
-      print(' DEBUG: track has mixer params (likely older project)')
-    if track_data.name:
-      print(f' DEBUG: track has name (which is rare): {track_data.name}')
+
+  if not project['tracks']:
+    print(f"WARNING: No tracks found in project: {project['name']}")
+    counters['warning_no_tracks'] += 1
+  project['counters'] = dict(counters)
 
   return project
 
 
-def save_info(cache_dir: str, info_dict: ProjectMap, prefix: str) -> str:
+def save_dict_as_json(
+    json_path: str, data: Dict[str, Any], indent: int = 4, sort: bool = True
+):
+  """Saves a dictionary to a JSON file."""
+  print(f'Saving json: {json_path}.')
+  with open(json_path, 'w') as f:
+    json.dump(data, f, indent=indent, sort_keys=sort)
+
+
+def load_dict_from_json(json_path: str) -> Dict[str, Any]:
+  """Loads a dictionary from a JSON file."""
+  print(f'Loading json: {json_path}.')
+  with open(json_path, 'r') as f:
+    return json.load(f)
+
+
+def print_dict(data: Dict[str, Any]) -> None:
+  """Pretty-prints a dictionary as formatted JSON."""
+  print(json.dumps(data, indent=4, sort_keys=True))
+
+
+def save_counters(
+    project_info: Dict[str, Any], display: bool = True, save_path: str = None
+) -> Dict[str, Counter]:
+  """Merges counters from multiple projects into a single set of counters."""
+  counters = defaultdict(Counter)
+  for project in project_info.values():
+    for counter_name, counter in project['counters'].items():
+      counters[counter_name].update(counter)
+
+  # Convert Counters to regular dictionaries for JSON serialization
+  counters = {name: dict(counter) for name, counter in counters.items()}
+  if display:
+    for name, counter in counters.items():
+      print(f"\n{name.replace('_', ' ').title()}:")
+      print_dict(counter)
+  if save_path:
+    save_dict_as_json(save_path, counters)
+  return counters
+
+
+def save_info(cache_dir: str, info_dict: Dict[str, Any], prefix: str) -> str:
   """Save project information to a cache file."""
   timestamp = int(time.time())
   save_date = datetime.datetime.fromtimestamp(timestamp)
@@ -374,12 +427,19 @@ def load_info(
     prefix: str = CACHE_INFO_FILE,
     cache_file: str = '',
     load_most_recent: bool = True,
-) -> ProjectMap:
+) -> Dict[str, Any]:
   """Load project information from a cache file."""
   cache = sorted([f for f in os.listdir(cache_dir) if prefix in f])
-  cache_file = (
-      cache[-1] if (cache_file not in cache or load_most_recent) else cache_file
-  )
+  if not cache:
+    print(f'  No cache files found matching prefix: {prefix}')
+    return {}
+
+  if load_most_recent:
+    cache_file = cache[-1]
+  elif cache_file not in cache:
+    print(f'WARNING: Cache: {cache_file} not found. Loading most recent.')
+    cache_file = cache[-1]
+
   cache_path = os.path.join(cache_dir, cache_file)
   timestamp = int(cache_path.split('.')[-1])
   cache_date = datetime.datetime.fromtimestamp(timestamp)
@@ -393,7 +453,7 @@ def load_info(
 
 def load_projects_in_dir(
     project_dir: str, skip_folders: List[str] = tuple(SKIP_FOLDERS)
-) -> Tuple[ProjectMap, ProjectMap]:
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
   """Load information for all .als projects in a directory."""
   project_info = {}
   project_errors = {}
@@ -428,7 +488,7 @@ def run_parser(
     cache_dir: str = CACHE_DIR,
     cache_info_file: str = CACHE_INFO_FILE,
     cache_error_file: str = CACHE_ERROR_FILE,
-) -> Tuple[ProjectMap, ProjectMap]:
+) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
   """Main entry point for parsing Ableton Live projects."""
   print(
       f'Project path: {project_dir}\n'
@@ -437,14 +497,18 @@ def run_parser(
   )
 
   project_info, project_errors = load_projects_in_dir(project_dir)
+  project_counters = save_counters(
+      project_info, display=True, save_path=COUNTER_JSON
+  )
+
   print(f'Caching project info to {cache_dir}')
   if project_info:
     save_info(cache_dir, project_info, prefix=cache_info_file)
   if project_errors:
     save_info(cache_dir, project_errors, prefix=cache_error_file)
 
-  return project_info, project_errors
+  return project_info, project_errors, project_counters
 
 
 if __name__ == '__main__':
-  info, errors = run_parser(project_dir=os.getcwd())
+  info, errors, counters = run_parser(project_dir=os.getcwd())

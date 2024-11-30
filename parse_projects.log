@@ -477,6 +477,205 @@ Loading projects in D:\Music Production\ableton projects.
  READING: lite loops
  READING: chillwavey
  READING: zelda pod
-Loaded 466 projects with 0 errors in 66.85 seconds.
+Loaded 466 projects with 0 errors in 55.03 seconds.
+
+Ableton Versions:
+{
+    "10.0": 225,
+    "11.0": 231,
+    "12.0": 10
+}
+
+Creation Years:
+{
+    "2019": 49,
+    "2020": 37,
+    "2021": 72,
+    "2022": 193,
+    "2023": 90,
+    "2024": 25
+}
+
+Last Modified Years:
+{
+    "2018": 21,
+    "2019": 86,
+    "2020": 45,
+    "2021": 48,
+    "2022": 155,
+    "2023": 85,
+    "2024": 26
+}
+
+Track Counts:
+{
+    "2": 26,
+    "3": 31,
+    "4": 35,
+    "5": 63,
+    "6": 44,
+    "7": 49,
+    "8": 38,
+    "9": 44,
+    "10": 19,
+    "11": 23,
+    "12": 19,
+    "13": 16,
+    "14": 8,
+    "15": 6,
+    "16": 5,
+    "17": 4,
+    "18": 4,
+    "19": 2,
+    "20": 5,
+    "21": 2,
+    "22": 2,
+    "23": 2,
+    "25": 2,
+    "26": 3,
+    "27": 1,
+    "28": 2,
+    "30": 1,
+    "31": 3,
+    "33": 3,
+    "34": 1,
+    "36": 1,
+    "37": 1,
+    "41": 1
+}
+
+Track Types:
+{
+    "AudioTrack": 2061,
+    "GroupTrack": 179,
+    "MasterTrack": 456,
+    "MidiTrack": 909,
+    "ReturnTrack": 454
+}
+
+Device Types:
+{
+    "Amp": 6,
+    "AuPluginDevice": 71,
+    "AudioEffectGroupDevice": 367,
+    "AutoFilter": 265,
+    "AutoPan": 81,
+    "BeatRepeat": 89,
+    "Chorus": 25,
+    "Collision": 4,
+    "Compressor2": 485,
+    "Corpus": 9,
+    "CrossDelay": 38,
+    "Delay": 160,
+    "DrumGroupDevice": 184,
+    "Echo": 67,
+    "Eq8": 730,
+    "FilterDelay": 7,
+    "FilterEQ3": 7,
+    "Flanger": 36,
+    "FrequencyShifter": 2,
+    "Gate": 74,
+    "GlueCompressor": 102,
+    "GrainDelay": 9,
+    "InstrumentGroupDevice": 139,
+    "InstrumentImpulse": 36,
+    "InstrumentVector": 2,
+    "Limiter": 28,
+    "Looper": 3,
+    "LoungeLizard": 7,
+    "MidiArpeggiator": 59,
+    "MidiChord": 7,
+    "MidiPitcher": 7,
+    "MidiRandom": 1,
+    "MidiScale": 10,
+    "MidiVelocity": 2,
+    "MultiSampler": 38,
+    "MultibandDynamics": 16,
+    "MxDeviceAudioEffect": 2,
+    "MxDeviceInstrument": 2,
+    "Operator": 23,
+    "OriginalSimpler": 26,
+    "Overdrive": 13,
+    "Phaser": 27,
+    "PhaserNew": 8,
+    "PingPongDelay": 7,
+    "PluginDevice": 1259,
+    "Redux": 4,
+    "Resonator": 5,
+    "Reverb": 300,
+    "Saturator": 7,
+    "SpectrumAnalyzer": 9,
+    "StereoGain": 289,
+    "StringStudio": 7,
+    "Tube": 11,
+    "Tuner": 14,
+    "UltraAnalog": 24,
+    "Vocoder": 1
+}
+
+Plugins Vst:
+{
+    "Absynth 5": 1,
+    "AmpliTube 4": 8,
+    "Bite": 2,
+    "Decimort2": 1,
+    "Dirt": 18,
+    "Driver": 5,
+    "Drumazon": 5,
+    "GS-201": 10,
+    "Guitar Rig 5": 396,
+    "Guitar Rig 6": 15,
+    "Komplete Kontrol": 143,
+    "LexPlate": 1,
+    "Lounge Lizard EP-4": 1,
+    "LuSH-101": 3,
+    "Maschine 2": 181,
+    "Microtonic": 4,
+    "MonoPoly": 3,
+    "Nerve": 1,
+    "Neutron 3": 3,
+    "Ozone Pro": 30,
+    "Ozone Pro Imager": 1,
+    "Phasis": 2,
+    "Phoscyon": 3,
+    "Polysix": 1,
+    "PunchBox": 2,
+    "RC 24": 3,
+    "RC 48": 2,
+    "Reaktor 6": 1,
+    "Reaktor 6 FX": 42,
+    "Solid Bus Comp": 44,
+    "Syntorus": 1,
+    "TAL-Chorus-LX": 23,
+    "TAL-U-No-62": 3,
+    "Tal-Chorus-LX": 16,
+    "Tal-Dub-X": 2,
+    "Toraverb": 28,
+    "Toraverb2": 1,
+    "ValhallaRoom": 8,
+    "Zebra2": 6,
+    "iZotope Alloy 2": 17,
+    "iZotope Insight": 3,
+    "iZotope Nectar 2": 4,
+    "iZotope Ozone 5": 189,
+    "iZotope Ozone 5 Equalizer": 3,
+    "iZotope Ozone 5 Imager": 6,
+    "iZotope Ozone 5 Reverb": 7,
+    "iZotope Stutter Edit": 9,
+    "tal-u-no-lx-v2": 1
+}
+
+Plugins Au:
+{
+    "Crystallizer": 3,
+    "GS-201": 37,
+    "Komplete Kontrol": 1,
+    "Maschine 2": 1,
+    "Massive": 2,
+    "Neutron 4": 23,
+    "iZotope Nectar 2": 3,
+    "iZotope Ozone 5": 1
+}
+Saving json: logs/counters.json.
 Caching project info to logs/
-Saving project_info from 2024-11-29 18:42:39.
+Saving project_info from 2024-11-29 22:02:04.

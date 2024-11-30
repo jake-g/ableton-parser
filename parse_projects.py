@@ -1,14 +1,17 @@
 """Library for Parsing Ableton Live projects."""
 
+import collections
 import datetime
 import gzip
 import os
 import pickle
 import plistlib
+import pprint
 import sys
 import time
 from typing import Any, Callable, Dict, List, Tuple
 import xml.etree.ElementTree as ET
+
 
 # Constants
 PROJECT_DIR = './'
@@ -28,6 +31,7 @@ SKIP_FOLDERS = [
 PYTHON_VERSION = sys.version
 
 ProjectMap = Dict[str, Any]
+
 
 class ALSNode:
   """Base class for parsing nodes in Ableton Live project files."""
@@ -71,7 +75,6 @@ class ALSNode:
   def _bool_value_for_subtag(self, selector: str) -> bool:
     """Extract a boolean value from a sub-element."""
     return self._value_for_subtag(selector) == 'true'
-
 
   def _guess_type_for_value(self, v: str) -> Callable[[str], Any] | None:
     """Infer the data type of a string value."""
@@ -184,11 +187,12 @@ class LiveSetAuPluginPresetData:
     self.text = self._decode_hex_string(text)
     self.plist = plistlib.loads(bytes(self.text, 'utf-8'))
     self.name = self.plist.get('name')
-    
+
   def _decode_hex_string(self, string: str) -> str:
     """Decode a hex string, ignoring non-hex characters."""
     hex_chars = ''.join(c for c in string.lower() if c in '0123456789abcdef')
     return bytes.fromhex(hex_chars).decode('utf-8')
+
 
 class LiveSetDeviceData(ALSNode):
   """Data for a device in an Ableton Live set."""
@@ -220,11 +224,17 @@ class LiveSetTrackData(ALSNode):
   """Data for a track in an Ableton Live set."""
 
   value_fields = {'Name': None}
+
   def __init__(self, elem: ET.Element):
     super().__init__(elem)
     self.track_type = elem.tag
     devices_path = 'DeviceChain/DeviceChain/Devices'
-    self.devices = [LiveSetDeviceData(c) for c in elem.find(devices_path)]
+    self.devices = (
+        [LiveSetDeviceData(c) for c in elem.findall(f'.//{devices_path}/*')]
+        if elem.findall(f'.//{devices_path}/*')
+        else []
+    )
+
     mixer_element = elem.find('DeviceChain/Mixer')
     self.mixer = (
         ALSTrackMixer(mixer_element) if mixer_element is not None else None
@@ -246,39 +256,78 @@ class LiveSetData:
 
   def __init__(self, path: str):
     self.etree = ET.parse(gzip.GzipFile(path))
+    self.ableton_version = self.etree.getroot().get('MinorVersion')
     self.live_set = self.etree.getroot().find('LiveSet')
-    self.tracks = [LiveSetTrackData(c) for c in self.live_set.find('Tracks')]
+    self.tracks = [
+        LiveSetTrackData(c) for c in self.live_set.findall('Tracks/*')
+    ]
+    # Works up thru ableton 11.
     master_track_element = self.live_set.find('MasterTrack')
-    self.master_track = (
-        LiveSetTrackData(master_track_element)
-        if master_track_element is not None
-        else None
+    if master_track_element is not None:
+      self.master_track = LiveSetTrackData(master_track_element)
+    # Possible fix for finding Master in ableton 12+
+    else:
+      self.master_track = (
+          self.tracks[-1]
+          if self.tracks and self.tracks[-1].track_type == 'MainTrack'
+          else None
+      )
+
+    self.file_size = os.path.getsize(path) / (1024 * 1024)  # Convert to MB
+    self.creation_time = self._timestamp_to_string(os.path.getctime(path))
+    self.modified_time = self._timestamp_to_string(os.path.getmtime(path))
+    self.num_tracks = len(self.tracks) + (1 if self.master_track else 0)
+    self.track_type_counts = collections.Counter(
+        track.track_type for track in self.tracks + [self.master_track] if track
     )
 
   def time_signatures(self) -> List[Tuple[int, Tuple[int, int]]]:
     """Extract the time signatures defined in the project."""
-    return [
-        (max(t, 0), self._decode_time_signature(enc))
-        for t, enc in self.master_track.mixer.params['TimeSignature'].events
-    ]
+    if self.master_track and self.master_track.mixer:
+      return [
+          (max(t, 0), self._decode_time_signature(enc))
+          for t, enc in self.master_track.mixer.params['TimeSignature'].events
+      ]
+    else:
+      return []
 
   def _decode_time_signature(self, encoded: int) -> Tuple[int, int]:
     """Decode an Ableton-encoded time signature to (numerator, denominator)."""
     return (encoded % 99 + 1, 1 << (encoded // 99))
 
+  def _timestamp_to_string(
+      self, timestamp: float, format: str = '%Y-%m-%d %H:%M:%S'
+  ) -> str:
+    """Converts a Unix timestamp to a formatted string."""
+    return datetime.datetime.fromtimestamp(timestamp).strftime(format)
 
-def parse_als_info(path: str) -> Dict[str, Any]:
+
+def parse_als_info(path: str, verbose: bool = False) -> Dict[str, Any]:
   """Extract project information from an Ableton Live file (.als)."""
   lsd = LiveSetData(path)
   name, ext = os.path.splitext(path)
   assert ext == '.als', f'Expected .als file, got {ext}'
-  info = {
+  project = {
       'path': path,
       'name': os.path.basename(name),
       'project': os.path.dirname(name).split('/')[-1].replace(' Project', ''),
+      'ableton_version': lsd.ableton_version,
+      'file_size_mb': round(lsd.file_size, 2),
+      'created': lsd.creation_time,
+      'modified': lsd.modified_time,
+      'num_tracks': lsd.num_tracks,
+      'track_type_counts': lsd.track_type_counts,
       'tracks': [],
   }
-  all_tracks = lsd.tracks + [lsd.master_track]
+  # Debugging show full xml for project
+  if verbose:
+    pprint.pprint(project)
+    # ET.dump(lsd.etree)
+
+  all_tracks = lsd.tracks
+  if lsd.master_track and lsd.master_track.track_type == 'MasterTrack':
+    all_tracks.append(lsd.master_track)
+
   for i, track_data in enumerate(all_tracks):
     i += 1
     if not track_data:
@@ -290,6 +339,7 @@ def parse_als_info(path: str) -> Dict[str, Any]:
         'devices': [],
         'clips': [],
     }
+
     for dev in track_data.devices:
       track_info['devices'].append(
           {'type': dev.device_type, 'preset': dev.preset_name}
@@ -298,13 +348,13 @@ def parse_als_info(path: str) -> Dict[str, Any]:
       track_info['clips'].append(
           {'name': clip.name, 'length': clip.length, 'is_loop': clip.loop_on}
       )
-    info['tracks'].append(track_info)
-    if track_data.mixer.params:
+    project['tracks'].append(track_info)
+    if track_data.mixer and track_data.mixer.params:
       print(' DEBUG: track has mixer params (likely older project)')
     if track_data.name:
       print(f' DEBUG: track has name (which is rare): {track_data.name}')
 
-  return info
+  return project
 
 
 def save_info(cache_dir: str, info_dict: ProjectMap, prefix: str) -> str:
@@ -392,8 +442,9 @@ def run_parser(
     save_info(cache_dir, project_info, prefix=cache_info_file)
   if project_errors:
     save_info(cache_dir, project_errors, prefix=cache_error_file)
-  
+
   return project_info, project_errors
+
 
 if __name__ == '__main__':
   info, errors = run_parser(project_dir=os.getcwd())

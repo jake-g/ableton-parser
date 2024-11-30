@@ -1,5 +1,5 @@
 Project path: D:\Music Production\ableton projects
-Found Dirs: ['.git', '.gitignore', '.stfolder', '.stignore', '.stversions', 'Bongo Cat.webloc', '__Demo_tapes', '___Dimensions_', '____darkwave', '____guitarbeet', '____lightwave', '__acoustic tracks', '__dj mixes_', '__psychy rock  tracks', '__pycache__', '_beat incubator', '_chillwave 2011', '_electronic dance house', '_electronic dark haaus', '_electronic nova trans hous', '_remix edits cuts', '_witch house', 'ableton_projects.ipynb', 'ambient deafness Project', 'beet Project', 'cacsias jaam hot Project', 'chill guitar beats lekato Project', 'lekato loops Project', 'logs', 'music_production - Shortcut.lnk', 'parse_projects.log', 'parse_projects.ps1', 'parse_projects.py', 'sloppy new rav desk Project', 'start_notebook.bat', 'start_notebook.sh', 'z__Maschine Format Projects', 'z__templates']
+Found Dirs: ['.git', '.gitignore', '.stfolder', '.stignore', '.stversions', 'Bongo Cat.webloc', '__Demo_tapes', '___Dimensions_', '____darkwave', '____guitarbeet', '____lightwave', '__acoustic tracks', '__dj mixes_', '__psychy rock  tracks', '__pycache__', '_beat incubator', '_chillwave 2011', '_electronic dance house', '_electronic dark haaus', '_electronic nova trans hous', '_remix edits cuts', '_witch house', 'ableton_projects.ipynb', 'ambient deafness Project', 'beet Project', 'cacsias jaam hot Project', 'chill guitar beats lekato Project', 'lekato loops Project', 'logs', 'music_production - Shortcut.lnk', 'parse_projects.log', 'parse_projects.ps1', 'parse_projects.py', 'sloppy new rav desk Project', 'start_notebook.ps1', 'start_notebook.sh', 'z__Maschine Format Projects', 'z__templates']
 Skipping Dirs containing: ['.git', '.ipynb_checkpoints', '.stfolder', '.stversions', 'Ableton Project Info', 'Backup', 'Samples', 'old']
 Loading projects in D:\Music Production\ableton projects.
  READING: ambient deafness
@@ -13,12 +13,9 @@ Loading projects in D:\Music Production\ableton projects.
  READING: cacsias jaam hot
  READING: caiaso 32
  READING: chill guitar beats lekato
-  SKIPPING None track 31
  READING: lekato loops
-  SKIPPING None track 8
  READING: 2
  READING: anotert
-  SKIPPING None track 8
  READING: sloppy new rav desk vox
  READING: template
  READING: new template
@@ -335,25 +332,12 @@ Loading projects in D:\Music Production\ableton projects.
  READING: pad jam t
  READING: REGAE DUB
  READING: Night Hawk w Victor [Shitty]
- READING: 1 legacy
-  ERROR: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
- READING: 2 legacy
-  ERROR: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
- READING: 3 legacy
-  ERROR: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
- READING: 4 legacy
-  ERROR: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
- READING: 5 legacy
-  ERROR: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
- READING: 6 + 7 legacy
-  ERROR: int() argument must be a string, a bytes-like object or a real number, not 'NoneType'
  READING: dimensions and space 
  READING: dimensions and space 24
  READING: dimensions full 2022
  READING: dark jazz tirbal jams
  READING: dark noir
  READING: dark rav vox rodas
-  SKIPPING None track 8
  READING: dark electric jam 3
  READING: dark synth song 3
  READING: dark synth wave jam
@@ -448,18 +432,12 @@ Loading projects in D:\Music Production\ableton projects.
  READING: ind bass part 2+
  READING: surf blues wip
  READING: acoustic lofi mac  jam
-  SKIPPING None track 6
  READING: raw outdoor porch
-  SKIPPING None track 4
  READING: summa time
-  SKIPPING None track 14
  READING: vox acoustic
-  SKIPPING None track 8
  READING: dubler vox pick
-  SKIPPING None track 4
  READING: template
  READING: template 12
-  SKIPPING None track 6
  READING: acoustic bluesky loop
  READING: _acoustic beats demos
  READING: accousric shuffl
@@ -499,7 +477,6 @@ Loading projects in D:\Music Production\ableton projects.
  READING: lite loops
  READING: chillwavey
  READING: zelda pod
-Loaded 466 projects with 6 errors in 70.49 seconds.
+Loaded 466 projects with 0 errors in 66.85 seconds.
 Caching project info to logs/
-Saving project_info from 2024-11-28 23:30:01.
-Saving project_errors from 2024-11-28 23:30:01.
+Saving project_info from 2024-11-29 18:42:39.

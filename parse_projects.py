@@ -1,6 +1,6 @@
 """Library for Parsing Ableton Live projects."""
 
-from collections import defaultdict, Counter
+from collections import Counter, defaultdict
 import datetime
 import gzip
 import json
@@ -11,13 +11,13 @@ import sys
 import time
 from typing import Any, Callable, Dict, List, Tuple
 import xml.etree.ElementTree as ET
+import pandas as pd
 
 
 # Constants
 PROJECT_DIR = './'
 CACHE_DIR = 'logs/'
 CACHE_INFO_FILE = 'project_info'
-CACHE_ERROR_FILE = 'project_errors'
 SKIP_FOLDERS = [
     'Backup',
     'old',
@@ -29,6 +29,7 @@ SKIP_FOLDERS = [
     '.git',
 ]
 COUNTER_JSON = os.path.join(CACHE_DIR, 'counters.json')
+PROJECT_TSV = os.path.join('projects.tsv')
 PYTHON_VERSION = sys.version
 
 
@@ -305,7 +306,6 @@ def parse_als_info(
       'path': path,
       'name': os.path.basename(name),
       'ableton_version_full': lsd.ableton_version,
-      'ableton_version': lsd.ableton_version.split('_')[0],
       'tracks': [],
       'file_size_mb': round(lsd.file_size_mb, 2),
       'created': lsd.creation_time.strftime('%Y-%m-%d %H:%M:%S'),
@@ -319,10 +319,9 @@ def parse_als_info(
 
   counters = defaultdict(Counter)
   # Counters with one entry for project, used when merging all counters
-  counters['ableton_versions'][project['ableton_version']] += 1
-  counters['creation_years'][lsd.creation_time.year] += 1
-  counters['last_modified_years'][lsd.modified_time.year] += 1
-  counters['track_counts'][project['num_tracks']] += 1
+  counters['ableton_version'][lsd.ableton_version.split('.')[0]] += 1
+  counters['creation_year'][str(int(lsd.creation_time.year))] += 1
+  counters['last_modified_year'][str(int(lsd.modified_time.year))] += 1
 
   for i, track_data in enumerate(all_tracks):
     i += 1
@@ -390,9 +389,45 @@ def print_dict(data: Dict[str, Any]) -> None:
   print(json.dumps(data, indent=4, sort_keys=True))
 
 
+def create_project_df(
+    project_info: Dict[str, Any], tsv_path: str = None
+) -> pd.DataFrame:
+  """Creates a Pandas DataFrame summarizing project information."""
+
+  def _format_counters(counters):
+    """Helper to format counter dictionaries."""
+    formatted = {}
+    for name, counter in counters.items():
+      if counter and (
+          len(counter) > 1
+          or (len(counter) == 1 and list(counter.values())[0] != 0)
+      ):
+        formatted[name] = ', '.join(counter.keys())
+    return formatted
+
+  skip_keys = ['counters', 'tracks']
+  rows = []
+  for project in project_info.values():
+    row = {key: project.get(key) for key in project if key not in skip_keys}
+    row.update(_format_counters(project.get('counters', {})))
+    rows.append(row)
+
+  df = pd.DataFrame(rows).set_index('name')
+  print(f'Created DataFrame with shape {df.shape}')
+  if tsv_path:
+    df.to_csv(tsv_path, sep='\t')
+  return df
+
+
+def load_project_df_from_tsv(tsv_path: str) -> pd.DataFrame:
+  """Loads a Pandas DataFrame from a TSV file."""
+  print(f'Loading tsv: {tsv_path}.')
+  return pd.read_csv(tsv_path, sep='\t', index_col=0)
+
+
 def save_counters(
     project_info: Dict[str, Any], display: bool = True, save_path: str = None
-) -> Dict[str, Counter]:
+) -> Dict[str, Counter[Any]]:
   """Merges counters from multiple projects into a single set of counters."""
   counters = defaultdict(Counter)
   for project in project_info.values():
@@ -453,11 +488,11 @@ def load_info(
 
 def load_projects_in_dir(
     project_dir: str, skip_folders: List[str] = tuple(SKIP_FOLDERS)
-) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+) -> Dict[str, Any]:
   """Load information for all .als projects in a directory."""
   project_info = {}
-  project_errors = {}
   t0 = time.time()
+  error_count = 0
   print(f'Loading projects in {project_dir}.')
   for dirpath, _, filenames in os.walk(project_dir):
     if any(f in dirpath for f in skip_folders):
@@ -470,16 +505,17 @@ def load_projects_in_dir(
         try:
           project_info[key] = parse_als_info(full_filename)
         except (ET.ParseError, TypeError, ValueError) as e:
-          project_errors[key] = e
+          project_info[key] = {'error': e, 'path': full_filename}
+          error_count += 1
           print(f'  ERROR: {e}')
         sys.stdout.flush()
 
   elapsed = time.time() - t0
   print(
       f'Loaded {len(project_info)} projects with '
-      f'{len(project_errors)} errors in {elapsed:.2f} seconds.'
+      f'{error_count} errors in {elapsed:.2f} seconds.'
   )
-  return project_info, project_errors
+  return project_info
 
 
 def run_parser(
@@ -487,8 +523,7 @@ def run_parser(
     skip_dirs: List[str] = tuple(SKIP_FOLDERS),
     cache_dir: str = CACHE_DIR,
     cache_info_file: str = CACHE_INFO_FILE,
-    cache_error_file: str = CACHE_ERROR_FILE,
-) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+) -> Tuple[Dict[str, Any], Dict[str, Any], pd.DataFrame]:
   """Main entry point for parsing Ableton Live projects."""
   print(
       f'Project path: {project_dir}\n'
@@ -496,19 +531,16 @@ def run_parser(
       f'Skipping Dirs containing: {sorted(skip_dirs)}'
   )
 
-  project_info, project_errors = load_projects_in_dir(project_dir)
+  project_info = load_projects_in_dir(project_dir)
+  print(f'Caching project info to {cache_dir}')
+  save_info(cache_dir, project_info, prefix=cache_info_file)
+  project_df = create_project_df(project_info, tsv_path=PROJECT_TSV)
   project_counters = save_counters(
       project_info, display=True, save_path=COUNTER_JSON
   )
 
-  print(f'Caching project info to {cache_dir}')
-  if project_info:
-    save_info(cache_dir, project_info, prefix=cache_info_file)
-  if project_errors:
-    save_info(cache_dir, project_errors, prefix=cache_error_file)
-
-  return project_info, project_errors, project_counters
+  return project_info, project_counters, project_df
 
 
 if __name__ == '__main__':
-  info, errors, counters = run_parser(project_dir=os.getcwd())
+  info, counters, df = run_parser(project_dir=os.getcwd())

@@ -27,6 +27,7 @@ SKIP_FOLDERS = [
     '.stversions',
     '.ipynb_checkpoints',
     '.git',
+    'z__templates'
 ]
 COUNTER_JSON = os.path.join(CACHE_DIR, 'counters.json')
 PROJECT_TSV = os.path.join('projects.tsv')

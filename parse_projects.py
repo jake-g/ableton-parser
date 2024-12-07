@@ -370,17 +370,20 @@ def parse_als_info(
 
 
 def save_dict_as_json(
-    json_path: str, data: Dict[str, Any], indent: int = 4, sort: bool = True
+    json_path: str, data: Dict[str, Any], indent: int = 4, 
+    sort: bool = True, verbose: bool = True
 ):
   """Saves a dictionary to a JSON file."""
-  print(f'Saving json: {json_path}.')
+  if verbose:
+    print(f'Saving json: {json_path}.')
   with open(json_path, 'w') as f:
     json.dump(data, f, indent=indent, sort_keys=sort)
 
 
-def load_dict_from_json(json_path: str) -> Dict[str, Any]:
+def load_dict_from_json(json_path: str, verbose: bool = True) -> Dict[str, Any]:
   """Loads a dictionary from a JSON file."""
-  print(f'Loading json: {json_path}.')
+  if verbose:
+    print(f'Loading json: {json_path}.')
   with open(json_path, 'r') as f:
     return json.load(f)
 
@@ -488,9 +491,11 @@ def load_info(
 
 
 def load_projects_in_dir(
-    project_dir: str, skip_folders: List[str] = tuple(SKIP_FOLDERS)
+    project_dir: str, skip_folders: List[str] = tuple(SKIP_FOLDERS),
+    save_info_json: bool = False, verbose: bool = False
 ) -> Dict[str, Any]:
   """Load information for all .als projects in a directory."""
+  project_ext = '.als'
   project_info = {}
   t0 = time.time()
   error_count = 0
@@ -500,11 +505,16 @@ def load_projects_in_dir(
       continue
     for filename in filenames:
       key, ext = os.path.splitext(filename)
-      if ext == '.als' and not key.startswith('.'):
+      if ext == project_ext and not key.startswith('.'):
         full_filename = os.path.join(dirpath, filename)
         print(f' READING: {key}')
         try:
-          project_info[key] = parse_als_info(full_filename)
+          info = parse_als_info(full_filename)
+          counters = info.get('counters', {})
+          if save_info_json and counters:
+            json_info_file = full_filename.replace(project_ext, '.json')
+            save_dict_as_json(json_info_file, counters, sort=False, verbose=verbose)
+          project_info[key] = info
         except (ET.ParseError, TypeError, ValueError) as e:
           project_info[key] = {'error': e, 'path': full_filename}
           error_count += 1
@@ -516,6 +526,7 @@ def load_projects_in_dir(
       f'Loaded {len(project_info)} projects with '
       f'{error_count} errors in {elapsed:.2f} seconds.'
   )
+
   return project_info
 
 
@@ -524,6 +535,7 @@ def run_parser(
     skip_dirs: List[str] = tuple(SKIP_FOLDERS),
     cache_dir: str = CACHE_DIR,
     cache_info_file: str = CACHE_INFO_FILE,
+    save_project_json: bool = True
 ) -> Tuple[Dict[str, Any], Dict[str, Any], pd.DataFrame]:
   """Main entry point for parsing Ableton Live projects."""
   print(
@@ -532,7 +544,7 @@ def run_parser(
       f'Skipping Dirs containing: {sorted(skip_dirs)}'
   )
 
-  project_info = load_projects_in_dir(project_dir)
+  project_info = load_projects_in_dir(project_dir, save_info_json=save_project_json)
   print(f'Caching project info to {cache_dir}')
   save_info(cache_dir, project_info, prefix=cache_info_file)
   project_df = create_project_df(project_info, tsv_path=PROJECT_TSV)

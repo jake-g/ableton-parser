@@ -12,6 +12,7 @@ AbletonTmp-0000
 # Files to Ignore
 Icon
 .DS_Store
+cache.json
 Icon*
 *.pyc
 *.textClipping
@@ -19,7 +20,6 @@ Icon*
 *.webloc
 *.lnk
 *.ini
-*.json
 *.pkf
 *.osp
 *.zip

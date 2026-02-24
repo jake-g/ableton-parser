@@ -1,0 +1,9 @@
+lxml
+numpy
+pandas
+matplotlib
+seaborn
+jupyterlab
+ipykernel
+notebook
+tabulate

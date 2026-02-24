@@ -1,16 +1,19 @@
 # Directories to Ignore
 logs/
+old/
 Backup/
 Samples/
 Recorded/
 Ableton Project Info/
 AbletonTmp-0000
+.ipynb_checkpoints/
 .stversions/
 .stignore
 .venv/
 
 # Files to Ignore
 Icon
+project_info.*
 .DS_Store
 cache.json
 Icon*

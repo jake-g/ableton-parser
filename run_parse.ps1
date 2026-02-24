@@ -2,6 +2,7 @@
 $ErrorActionPreference = "Stop"
 
 $Host.UI.RawUI.WindowTitle = "ableton-project-parser"
+Set-Location "D:\Music Production\ableton projects"
 
 # Assume python is available in path or .venv already active/available
 $Python = "python"

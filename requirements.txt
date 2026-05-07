@@ -7,3 +7,4 @@ jupyterlab
 ipykernel
 notebook
 tabulate
+pre-commit

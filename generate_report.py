@@ -323,37 +323,19 @@ def generate_markdown(project_info: Dict[str, Any], df: pd.DataFrame):
   report_content.append("#### Top AUs\n![top_au](outputs/plots/top_au.png)\n")
 
   full_report = "\n".join(report_content)
-  inject_documentation(full_report)
+  write_report_file(full_report)
 
 
-def inject_documentation(report_content: str):
-  """Injects Report into README.md."""
-  readme_path = 'README.md'
-
-  if not os.path.exists(readme_path):
-    logger.error(f"{readme_path} not found. Skipping injection.")
-    return
-
-  with open(readme_path, 'r') as f:
-    readme_content = f.read()
-
-  # Inject Report
-  start_marker = '<!-- REPORT_START -->'
-  end_marker = '<!-- REPORT_END -->'
-
-  if start_marker in readme_content and end_marker in readme_content:
-    start_index = readme_content.find(start_marker) + len(start_marker)
-    end_index = readme_content.find(end_marker)
-
-    new_content = readme_content[:
-                                 start_index] + '\n' + report_content + '\n' + readme_content[
-                                     end_index:]
-
-    with open(readme_path, 'w') as f:
-      f.write(new_content)
-    logger.info("Injected Report into README.md")
-  else:
-    logger.warning("Report injection markers not found in README.md")
+def write_report_file(report_content: str) -> None:
+  """Writes the generated report to REPORT.md."""
+  report_path = 'REPORT.md'
+  try:
+    with open(report_path, 'w', encoding='utf-8') as f:
+      f.write("# Ableton Project Parser - Detailed Report\n\n")
+      f.write(report_content)
+    logger.info("Successfully wrote report to %s", report_path)
+  except OSError as e:
+    logger.error("Failed to write report to %s: %s", report_path, e)
 
 
 if __name__ == '__main__':

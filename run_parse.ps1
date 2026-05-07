@@ -25,11 +25,8 @@ Write-Host "Generating report..."
 & $Python generate_report.py
 
 Write-Host "Staging and committing updates to Git..."
-# Stage all project data, cache, and code changes
-git add README.md generate_report.py REPORT.md Makefile zip_skeleton.py outputs/ projects.tsv run_parse.ps1
-# Stage any modified personal project folders/skeletons
-git add _*
-git add "* Project"
+# Stage all changes, additions, and deletions (safe on personal master branch)
+git add -A
 
 # Generate current timestamp and commit
 $DateStr = Get-Date -Format "yyyy-MM-dd HH:mm:ss"

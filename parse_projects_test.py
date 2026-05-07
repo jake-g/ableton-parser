@@ -1,4 +1,5 @@
 
+import datetime
 import gzip
 import os
 import shutil
@@ -99,7 +100,8 @@ class TestParseProjects(unittest.TestCase):
     self.assertEqual(info['duration_sec'], 2.0)
 
     self.assertEqual(info['time_signature'], '65540')  # 4/4 decoded or raw
-    self.assertEqual(info['created'], '2023-01-01 04:00:00')
+    expected_time = datetime.datetime.fromtimestamp(1672574400).strftime('%Y-%m-%d %H:%M:%S')
+    self.assertEqual(info['created'], expected_time)
     self.assertEqual(len(info['tracks']), 2)  # MidiTrack + MasterTrack
 
     # Check plugin extraction

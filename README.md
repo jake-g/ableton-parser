@@ -73,12 +73,12 @@ My Music/
 - **Tests**: Run `python parse_projects_test.py`.
 
 <!-- REPORT_START -->
-**Generated:** 2026-02-23 23:32:26.674334
+**Generated:** 2026-04-26 01:15:51.942614
 
 ### Overview
-- **Total Projects:** 453
-- **Total Size:** 105.47 MB
-- **Date Range:** 2019-09-08 02:02:06 to 2026-02-23 23:05:54
+- **Total Projects:** 451
+- **Total Size:** 104.33 MB
+- **Date Range:** 2019-09-08 02:02:06 to 2026-01-02 15:16:11
 
 ### Potential Compatibility Issues
 ### Deprecated Plugins Check
@@ -93,10 +93,10 @@ No deprecated plugins found.
 
 | Plugin           |   Count |
 |:-----------------|--------:|
-| Guitar Rig 5     |     364 |
+| Guitar Rig 5     |     358 |
 | iZotope Ozone 5  |     211 |
-| Maschine 2       |     168 |
-| Komplete Kontrol |     136 |
+| Maschine 2       |     166 |
+| Komplete Kontrol |     134 |
 | Solid Bus Comp   |      41 |
 | Toraverb         |      29 |
 |                  |      26 |
@@ -124,8 +124,8 @@ No deprecated plugins found.
 ### Project Inventory (Top 50 Recently Modified)
 | name                                     |   ableton_version_full |    tempo | scale_root   | scale_name   |   duration_sec |   num_tracks |   file_size_mb | modified            |
 |------------------------------------------|------------------------|----------|--------------|--------------|----------------|--------------|----------------|---------------------|
-| unsorted loops                           |                12.0121 |  78      |              | 0            |           0    |            8 |           0.14 | 2025-12-12 22:26:20 |
-| chill guitar beats lekato                |                12.0121 |  75      |              | 0            |        1598.4  |           32 |           1.49 | 2025-12-12 19:47:51 |
+| unsorted loops                           |                12.0121 |  78      | nan          | 0            |           0    |            8 |           0.14 | 2025-12-12 22:26:20 |
+| chill guitar beats lekato                |                12.0121 |  75      | nan          | 0            |        1598.4  |           32 |           1.49 | 2025-12-12 19:47:51 |
 | Untitle3d                                |                11.0113 |  70      | C            | Major        |           0    |           10 |           0.01 | 2025-08-10 00:57:09 |
 | lekato drums template                    |                11.0113 |  70      | C            | Major        |           0    |           10 |           0.06 | 2025-08-09 21:32:12 |
 | Untitled2                                |                11.0113 |  70      | C            | Major        |           0    |           10 |           0.01 | 2025-08-03 23:34:57 |
@@ -136,7 +136,7 @@ No deprecated plugins found.
 | portasynth 25                            |                11.0113 |  65      | C            | Major        |           0    |            7 |           0.19 | 2025-06-28 18:40:17 |
 | lounge jam                               |                11.0113 |  70.1534 | C            | Major        |         102.63 |            5 |           0.01 | 2025-04-27 02:55:38 |
 | long                                     |                11.0113 |  60      | C            | Major        |           0    |            7 |           0.17 | 2025-04-07 21:06:11 |
-| simp synth                               |                12.0121 |  72.7883 |              | 0            |           0    |            5 |           0.03 | 2025-03-24 21:05:54 |
+| simp synth                               |                12.0121 |  72.7883 | nan          | 0            |           0    |            5 |           0.03 | 2025-03-24 21:05:54 |
 | synth beat                               |                11.0113 | 111      | C            | Major        |           0    |            6 |           0.11 | 2025-02-08 22:03:34 |
 | slide dist exp                           |                11.0113 |  80      | C            | Major        |           0    |            6 |           0.14 | 2025-02-08 22:02:25 |
 | caiaso 32 jarry braz                     |                11.0113 |  76      | C            | Major        |         480    |            7 |           0.15 | 2025-02-08 21:59:43 |
@@ -144,7 +144,7 @@ No deprecated plugins found.
 | trasncriptoi to midi                     |                11.0113 | 154.513  | C            | Major        |           0    |            8 |           0.95 | 2025-02-08 21:50:24 |
 | broken fluit fly                         |                11.0113 |  63      | C            | Major        |         402.38 |           14 |           0.27 | 2025-02-08 21:48:50 |
 | cas wonk synth revsdn                    |                11.0113 |  75      | C            | Major        |         338    |            2 |           0.02 | 2025-02-08 21:47:50 |
-| summa time                               |                12.0121 |  67      |              | 0            |           0    |           13 |           0.09 | 2025-02-08 14:23:51 |
+| summa time                               |                12.0121 |  67      | nan          | 0            |           0    |           13 |           0.09 | 2025-02-08 14:23:51 |
 | chior                                    |                11.0113 |  77      | C            | Major        |          87.35 |           10 |           0.12 | 2025-01-17 13:46:32 |
 | jah chopped                              |                11.0113 | 100.136  | C            | Major        |           0    |            2 |           0.03 | 2024-12-28 13:01:14 |
 | nylonoer                                 |                11.0113 |  73.8281 | C            | Major        |         331.02 |            5 |           0.18 | 2024-12-12 01:35:32 |

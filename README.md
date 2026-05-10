@@ -66,7 +66,15 @@ python generate_report.py
     └── plots/              # Statistical charts (version, tempo, plugins, etc.)
 ```
 
-### Example Target Project Structure (Ignored from Git Repository)
+## Repository Structure
+This repository uses a two-branch system to separate public code from personal data:
+- **`main` (Public)**: The primary branch for the parser code, documentation, and tooling. It does **not** include any personal project folders or data.
+- **`dev` (Private)**: A private branch (typically backed up to a personal remote) that includes the parser code along with your actual Ableton project folders.
+
+> [!IMPORTANT]
+> When contributing or pushing to a public remote (like GitHub), ensure you are on the `main` branch to avoid accidentally sharing private project metadata or folders.
+
+### Example Target Project Structure
 The parser recursively scans your project folders (such as `My Music/` below). All actual project folders, audio files, and local samples are fully ignored by `.gitignore` to protect your privacy:
 ```
 My Music/

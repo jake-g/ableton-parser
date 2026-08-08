@@ -2,7 +2,7 @@
 $ErrorActionPreference = "Stop"
 
 $Host.UI.RawUI.WindowTitle = "ableton-project-parser"
-Set-Location "B:\Music Production\ableton projects"
+Set-Location $PSScriptRoot
 
 # Assume python is available in path or .venv already active/available
 $Python = "python"
@@ -19,18 +19,27 @@ Write-Host "Running tests..."
 
 Write-Host "Running parser..."
 # Use Tee-Object to capture log while showing output, mirroring user's preference
-& $Python parse_projects.py $args | Tee-Object -FilePath "outputs/parse_projects.log"
+& $Python parse_projects.py --save-json $args | Tee-Object -FilePath "outputs/parse_projects.log"
 
 Write-Host "Generating report..."
 & $Python generate_report.py
 
-Write-Host "Staging and committing updates to Git..."
-# Stage all changes, additions, and deletions (safe on personal master branch)
+Write-Host "Staging and committing updates to Public Git..."
 git add -A
-
-# Generate current timestamp and commit
 $DateStr = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-git commit -m "Run parse update on $DateStr"
+git commit -m "Run parse update on $DateStr" --allow-empty
+git push origin main
+
+Write-Host "Staging and committing updates to Private Git..."
+$PrivateGitDir = Join-Path $PSScriptRoot ".private_git"
+if (Test-Path $PrivateGitDir) {
+    Remove-Item -Force "$PrivateGitDir\index.lock" -ErrorAction SilentlyContinue
+    git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" add -A
+    git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" add -f ":(exclude).venv/**" "**/*.als" "**/*.json" "**/*.png" "REPORT.md"
+
+    git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" commit -m "Run private parse update on `$DateStr" --allow-empty
+    git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" push origin main
+}
 
 Write-Host "Done!"
 pause

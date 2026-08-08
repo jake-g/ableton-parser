@@ -83,6 +83,21 @@ notebook: setup
 		--NotebookApp.port_retries=0 \
 		--NotebookApp.allow_credentials=True
 
+# Private in-place data repository targets
+PRIVATE_GIT := git --git-dir=.private_git --work-tree=.
+
+private-status:
+	@$(PRIVATE_GIT) status
+
+private-add:
+	@$(PRIVATE_GIT) add .
+	@$(PRIVATE_GIT) add -f ":(exclude).venv/**" "**/*.als" "**/*.json" "**/*.png" "REPORT.md" 2>/dev/null || true
+
+private-commit: private-add
+	@$(PRIVATE_GIT) commit -m "update private data" || true
+
+private-push: private-commit
+	@$(PRIVATE_GIT) push -u origin main
 
 # Clean up caches, logs, and generated data
 clean:

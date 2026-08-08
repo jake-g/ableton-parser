@@ -10,6 +10,7 @@ AbletonTmp-0000
 .stversions/
 .stignore
 .venv/
+.private_git/
 
 # Files to Ignore
 Icon
@@ -48,3 +49,13 @@ Icon*
 *.mp4
 *.flac
 *.aif
+
+# Projects / Outputs / Personal Reports
+_*
+__*
+*[Pp]roject/
+*.tsv
+ableton_projects.ipynb
+REPORT.md
+outputs/
+github_actions.log

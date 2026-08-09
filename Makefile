@@ -91,7 +91,7 @@ private-status:
 
 private-add:
 	@$(PRIVATE_GIT) add .
-	@$(PRIVATE_GIT) add -f ":(exclude).venv/**" "**/*.als" "**/*.json" "**/*.png" "REPORT.md" 2>/dev/null || true
+	@$(PRIVATE_GIT) add -f "**/*.als" "**/*.json" "**/*.png" "REPORT.md" 2>/dev/null || true
 
 private-commit: private-add
 	@$(PRIVATE_GIT) commit -m "update private data" || true

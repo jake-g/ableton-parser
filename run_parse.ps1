@@ -1,4 +1,4 @@
-# Set strict error handling
+﻿# Set strict error handling
 $ErrorActionPreference = "Stop"
 
 $Host.UI.RawUI.WindowTitle = "ableton-project-parser"
@@ -37,7 +37,7 @@ if (Test-Path $PrivateGitDir) {
     git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" add -A
     git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" add -f "**/*.als" "**/*.json" "**/*.png" "REPORT.md"
 
-    git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" commit -m "Run private parse update on `$DateStr" --allow-empty
+    git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" commit -m "Run private parse update on $DateStr" --allow-empty
     git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" push origin main
 }
 

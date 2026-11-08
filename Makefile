@@ -152,7 +152,7 @@ notebook: setup
 PRIVATE_GIT := git --git-dir=.private_git --work-tree=.
 
 # Paths that must never reach the public GitHub remote.
-PRIVATE_PATHS := REPORT.md ableton_projects.ipynb outputs sp404
+PRIVATE_PATHS := REPORT.md ableton_projects.ipynb outputs sp404 docs
 
 # Filename patterns that must never be tracked publicly. Used with
 # `git ls-files`, so these are gitignore-style globs, not regexes.

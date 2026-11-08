@@ -1,4 +1,6 @@
 # Directories to Ignore
+docs
+docs/
 logs/
 old/
 Backup/

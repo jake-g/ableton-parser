@@ -15,9 +15,12 @@ files (`.als`).
 - **Plugin state** — best-effort recovery of readable strings from the
   opaque VST chunk: internal sample kits, library names, preset names and
   parameter labels.
-- **Analysis** — 24 counters aggregated across all projects.
+- **Analysis** — 28 counters (25 populated) aggregated across all projects.
 - **Reporting** — generates `REPORT.md` with plots (private remote only).
 - **Logging** — console plus `outputs/parse_projects.log`.
+- **Testing** — `make test`; **37 tests** covering sample extraction,
+  sample-kit grouping, preset-name filtering, skip-dir matching, error
+  reporting and VST chunk parsing.
 
 ---
 
@@ -96,10 +99,10 @@ python generate_report.py
 
 ---
 
-## Counters (24)
+## Counters (28)
 
 Written to `outputs/counters.json` as `{counter: {value: count}}`.
-**24 defined, 21 populated** in the latest run (455 projects, 0 errors,
+**28 defined, 25 populated** in the latest run (455 projects, 0 errors,
 65.2s). The three empty ones are expected: `samples_missing` needs
 `--probe-samples`, `midi_clip_is_loop` needs `--include-midi-clips`, and
 `warning_no_tracks` is empty because every project had tracks.
@@ -137,6 +140,10 @@ Written to `outputs/counters.json` as `{counter: {value: count}}`.
 | `plugin_sample_files` | Individual sample filenames living inside plugins (2,413 distinct) |
 | `plugin_sample_kits` | Kit folders referenced by plugins (178 distinct) |
 | `plugins_with_samples` | Which plugins carry sample content at all? |
+| `ableton_creator` | Full creator build string (e.g. `Ableton Live 11.3.25`, 12 distinct) |
+| `ableton_version_full` | Minor/schema version string across sets (6 distinct) |
+| `locators` | Arrangement locator labels for sections and chord progressions (227 distinct) |
+| `sample_categories` | Project subfolder roles (`recorded`, `imported`, `freeze`, `loop`, `consolidate`, etc.) |
 
 > [!NOTE]
 > **`vst_strings` mixes presets with parameter labels.** The name
@@ -214,7 +221,7 @@ unaffected — those remain one row per reference.
 
 ```json
 {
-  "name": "fate beat 12 Project",
+  "name": "Demo Beat Project",
   "num_samples": 42,
   "num_unique_samples": 31,
   "num_audio_clips": 12,
@@ -222,7 +229,7 @@ unaffected — those remain one row per reference.
   "samples": [
     {
       "name": "kick_01.wav",
-      "path": "B:/Music Production/Samples/kick_01.wav",
+      "path": "/path/to/Samples/kick_01.wav",
       "relative_path": "Samples/Imported/kick_01.wav",
       "extension": ".wav",
       "source": "audio_clip",
@@ -276,6 +283,7 @@ One row per sample reference (kit rows for plugin samples):
 | `path` | Absolute path as stored in the set |
 | `relative_path` | Path relative to the project folder |
 | `extension` | Lowercased, with the dot |
+| `category` | Subfolder classification (`imported`, `recorded`, `freeze`, `loop`, `consolidate`, `crop`, `reverse`, `processed`) |
 | `source` | `audio_clip` · `device` · `plugin_kit` |
 | `sample_rate` | From the set, or the WAV header when probed |
 | `duration_sec` | Derived from duration / sample rate |
@@ -293,9 +301,9 @@ One row per sample reference (kit rows for plugin samples):
 
 ```tsv
 name	path	extension	source	duration_sec	track_index	plugin	project
-kick_01.wav	B:/.../kick_01.wav	.wav	audio_clip	1.204	3		fate beat 12
-vox chop.aif	B:/.../vox chop.aif	.aif	device	0.517	5		fate beat 12
-Kick	C:/Maschine 2 Library/Drums/Kick		plugin_kit		1	Maschine 2	fate beat 12
+kick_01.wav	/path/to/kick_01.wav	.wav	audio_clip	1.204	3		Demo Beat
+vox_chop.aif	/path/to/vox_chop.aif	.aif	device	0.517	5		Demo Beat
+Kick	/Shared/Maschine 2 Library/Drums/Kick		plugin_kit		1	Maschine 2	Demo Beat
 ```
 
 ---
@@ -373,6 +381,8 @@ run_parse.ps1
 - notebooks — `*.ipynb`
 - any `*.tsv` or `*.pkl`
 - planning files — `TODO*`, `PLAN*`
+- studio guides and documentation — `docs/`
+- sampler integration — `sp404/`
 
 Run the guard before every public push:
 
@@ -397,7 +407,7 @@ into, the public repo. Private artifacts go out with `make private-push`.
 - **Style** — Google Python Style: 2-space indent, 80 columns, typed
   signatures, Google-style docstrings, `logging` (never `print`).
 - **Formatting** — `make format` runs pre-commit over all files.
-- **Testing** — `make test`; **32 tests** covering sample extraction,
+- **Testing** — `make test`; **37 tests** covering sample extraction,
   sample-kit grouping, preset-name filtering, skip-dir matching, error
   reporting and VST chunk parsing.
 
@@ -405,7 +415,16 @@ into, the public repo. Private artifacts go out with `make private-push`.
 
 ## Changelog
 
-### [2.1.0] - 2026-09-20 (Samples & Plugin State)
+### [2.2.0] - 2026-11-08 (Corpus Metrics and Schema Alignment)
+#### Added
+- **Expanded Corpus Counters** — documented all **28 counters** (`25` populated) in `outputs/counters.json`, adding `ableton_creator`, `ableton_version_full`, `locators`, and `sample_categories`.
+- **Sample Classification** — added `category` column to `outputs/samples.tsv` (`26,703 × 19`) classifying project subfolder roles (`recorded`, `imported`, `freeze`, `loop`, `consolidate`, `crop`, `reverse`, `processed`).
+- **Comprehensive Unit Tests** — expanded synthetic test suite to **37 tests** in `parse_projects_test.py`.
+- **Plot Path Portability** — normalized plot path separators in `generate_report.py` for cross-platform rendering.
+#### Changed
+- Relocated `github_actions.log` to git-ignored `outputs/github_actions.log`.
+
+### [2.1.0] - 2026-09-20 (Samples and Plugin State)
 
 #### Added
 - **Sample extraction** — three paths (audio clips, Simpler/Sampler/Drum

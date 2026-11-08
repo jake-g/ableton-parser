@@ -960,7 +960,7 @@ def render_graph_links(sections: Iterable[Tuple[str, str]],
     if filename not in written:
       logger.info("Omitting graph '%s': plot not generated.", heading)
       continue
-    path = f"{PLOTS_DIR}/{filename}"
+    path = f"{PLOTS_DIR.replace(os.sep, '/')}/{filename}"
     stem = os.path.splitext(filename)[0]
     links.append(f"#### {heading}\n![{stem}]({path})\n")
   return links

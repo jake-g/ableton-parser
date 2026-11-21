@@ -196,7 +196,10 @@ private-status:
 
 private-add:
 	@$(PRIVATE_GIT) add .
-	@$(PRIVATE_GIT) add -f "**/*.als" "**/*.json" "**/*.png" "REPORT.md" "sp404/**" 2>/dev/null || true
+	@$(PRIVATE_GIT) add -f "**/*.als" "**/*.json" "**/*.png" "REPORT.md" "docs/**" "sp404/**" \
+		":(exclude).venv/**" ":(exclude).mypy_cache/**" ":(exclude).pytest_cache/**" \
+		":(exclude).ipynb_checkpoints/**" ":(exclude)__pycache__/**" ":(exclude)**/__pycache__/**" \
+		":(exclude)**/*.pyc" ":(exclude)**/.DS_Store" 2>/dev/null || true
 
 private-commit: private-add
 	@$(PRIVATE_GIT) commit -m "update private data" || true

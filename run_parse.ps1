@@ -46,7 +46,11 @@ $PrivateGitDir = Join-Path $PSScriptRoot ".private_git"
 if (Test-Path $PrivateGitDir) {
     Remove-Item -Force "$PrivateGitDir\index.lock" -ErrorAction SilentlyContinue
     git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" add -A
-    git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" add -f "**/*.als" "**/*.json" "**/*.png" "REPORT.md"
+    git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" add -f `
+        "**/*.als" "**/*.json" "**/*.png" "REPORT.md" "docs/**" "sp404/**" `
+        ":(exclude).venv/**" ":(exclude).mypy_cache/**" ":(exclude).pytest_cache/**" `
+        ":(exclude).ipynb_checkpoints/**" ":(exclude)__pycache__/**" ":(exclude)**/__pycache__/**" `
+        ":(exclude)**/*.pyc" ":(exclude)**/.DS_Store"
 
     git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" commit -m "Run private parse update on $DateStr" --allow-empty
     git --git-dir="$PrivateGitDir" --work-tree="$PSScriptRoot" push origin main
